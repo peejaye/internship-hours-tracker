@@ -1,47 +1,56 @@
 import streamlit as st
 import pandas as pd
+import datetime
 
-# Initialize data
-weeks_remaining = 14
-data = {
-    "Week": [f"Week {i+1}" for i in range(weeks_remaining)],
-    "Direct Hours Needed (Min)": [10] * weeks_remaining,
-    "Direct Hours Needed (Avg)": [10] * weeks_remaining,
-    "Indirect Hours Needed (Min)": [6] * weeks_remaining,
-    "Indirect Hours Needed (Avg)": [6] * weeks_remaining,
-    "Direct Hours Intended": [0] * weeks_remaining,
-    "Indirect Hours Intended": [0] * weeks_remaining,
-    "Direct Hours Actual": [0] * weeks_remaining,
-    "Indirect Hours Actual": [0] * weeks_remaining,
-}
-df = pd.DataFrame(data)
-
-# Streamlit app
+# Streamlit App
 st.title("Internship Hours Tracker")
 
-# Editable table
-st.subheader("Weekly Data")
-edited_df = st.data_editor(df, num_rows="dynamic")
+# User Inputs
+st.header("Enter Internship Details")
+start_date = st.date_input("Start Date", value=datetime.date.today())
+weeks_remaining = st.number_input("Number of Weeks Remaining", min_value=1, max_value=52, value=14)
+direct_hours_completed = st.number_input("Direct Hours Completed", min_value=0, value=0)
+indirect_hours_completed = st.number_input("Indirect Hours Completed", min_value=0, value=0)
+
+total_direct_hours_required = 260
+total_indirect_hours_required = 600
 
 # Calculations
-edited_df["Total Direct Hours Achieved"] = edited_df["Direct Hours Actual"].cumsum()
-edited_df["Total Indirect Hours Achieved"] = edited_df["Indirect Hours Actual"].cumsum()
-edited_df["Grand Total Direct Remaining"] = 260 - 119 - edited_df["Total Direct Hours Achieved"]
-edited_df["Grand Total Indirect Remaining"] = 600 - 512 - edited_df["Total Indirect Hours Achieved"]
+remaining_direct_hours = total_direct_hours_required - direct_hours_completed
+remaining_indirect_hours = total_indirect_hours_required - indirect_hours_completed
+average_direct_per_week = round(remaining_direct_hours / weeks_remaining)
+average_indirect_per_week = round(remaining_indirect_hours / weeks_remaining)
 
-# Display updated table
-st.subheader("Updated Table with Totals")
-st.dataframe(edited_df)
+# Display Calculations
+st.header("Weekly Hours Requirements")
+st.write(f"You need to complete an average of {average_direct_per_week} direct hours per week.")
+st.write(f"You need to complete an average of {average_indirect_per_week} indirect hours per week.")
 
-# Downloadable file
-@st.cache_data
-def convert_df(df):
-    return df.to_excel(index=False)
+# User Input for Tracking Weekly Progress
+st.header("Track Weekly Progress")
+weekly_direct_hours = []
+weekly_indirect_hours = []
 
-st.download_button(
-    label="Download Excel File",
-    data=convert_df(edited_df),
-    file_name="Internship_Hours_Tracker.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-)
+for week in range(1, weeks_remaining + 1):
+    st.subheader(f"Week {week}")
+    direct_hours = st.number_input(f"Direct Hours for Week {week}", min_value=0, value=0, key=f"direct_{week}")
+    indirect_hours = st.number_input(f"Indirect Hours for Week {week}", min_value=0, value=0, key=f"indirect_{week}")
+    weekly_direct_hours.append(direct_hours)
+    weekly_indirect_hours.append(indirect_hours)
 
+# Calculate Total Hours
+st.header("Summary")
+total_direct_hours = direct_hours_completed + sum(weekly_direct_hours)
+total_indirect_hours = indirect_hours_completed + sum(weekly_indirect_hours)
+
+st.write(f"Total Direct Hours Completed: {total_direct_hours} / {total_direct_hours_required}")
+st.write(f"Total Indirect Hours Completed: {total_indirect_hours} / {total_indirect_hours_required}")
+
+if total_direct_hours >= total_direct_hours_required and total_indirect_hours >= total_indirect_hours_required:
+    st.success("Congratulations! You have completed all required hours.")
+elif total_direct_hours >= total_direct_hours_required:
+    st.info("You have completed all direct hours but still need to complete indirect hours.")
+elif total_indirect_hours >= total_indirect_hours_required:
+    st.info("You have completed all indirect hours but still need to complete direct hours.")
+else:
+    st.warning("You still need to complete both direct and indirect hours.")
