@@ -21,6 +21,10 @@ remaining_indirect_hours = total_indirect_hours_required - indirect_hours_comple
 average_direct_per_week = round(remaining_direct_hours / weeks_remaining)
 average_indirect_per_week = round(remaining_indirect_hours / weeks_remaining)
 
+# Display Remaining Hours in Red
+st.markdown(f"<p style='color:red;'>Remaining Direct Hours Needed: {remaining_direct_hours}</p>", unsafe_allow_html=True)
+st.markdown(f"<p style='color:red;'>Remaining Indirect Hours Needed: {remaining_indirect_hours}</p>", unsafe_allow_html=True)
+
 # Display Calculations
 st.header("Weekly Hours Requirements")
 st.write(f"You need to complete an average of {average_direct_per_week} direct hours per week.")
@@ -32,11 +36,13 @@ weekly_direct_hours = []
 weekly_indirect_hours = []
 
 for week in range(1, weeks_remaining + 1):
-    st.subheader(f"Week {week}")
-    direct_hours = st.number_input(f"Direct Hours for Week {week}", min_value=0, value=0, key=f"direct_{week}")
-    indirect_hours = st.number_input(f"Indirect Hours for Week {week}", min_value=0, value=0, key=f"indirect_{week}")
-    weekly_direct_hours.append(direct_hours)
-    weekly_indirect_hours.append(indirect_hours)
+    with st.expander(f"📅 Week {week}", expanded=False):
+        st.markdown(f"<div style='background-color:#f0f0f5; padding:10px; border-radius:5px;'>", unsafe_allow_html=True)
+        direct_hours = st.number_input(f"Direct Hours for Week {week}", min_value=0, value=0, key=f"direct_{week}")
+        indirect_hours = st.number_input(f"Indirect Hours for Week {week}", min_value=0, value=0, key=f"indirect_{week}")
+        weekly_direct_hours.append(direct_hours)
+        weekly_indirect_hours.append(indirect_hours)
+        st.markdown(f"</div>", unsafe_allow_html=True)
 
 # Calculate Total Hours
 st.header("Summary")
