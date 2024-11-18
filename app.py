@@ -56,6 +56,13 @@ weeks_remaining = st.number_input("Number of Weeks Remaining", min_value=1, max_
 direct_hours_completed = st.number_input("Direct Hours Completed", min_value=0, value=0)
 indirect_hours_completed = st.number_input("Indirect Hours Completed", min_value=0, value=0)
 
+# Initialize session state to keep track of weekly hours if not already initialized
+if "weekly_direct_hours" not in st.session_state:
+    st.session_state.weekly_direct_hours = [0] * weeks_remaining
+if "weekly_indirect_hours" not in st.session_state:
+    st.session_state.weekly_indirect_hours = [0] * weeks_remaining
+
+# Total required hours
 total_direct_hours_required = 260
 total_indirect_hours_required = 600
 
@@ -76,30 +83,24 @@ st.write(f"You need to complete an average of {average_indirect_per_week} indire
 
 # User Input for Tracking Weekly Progress
 st.header("Track Weekly Progress")
-weekly_direct_hours = [0] * weeks_remaining
-weekly_indirect_hours = [0] * weeks_remaining
-
 current_week = st.number_input("Select Week to Update", min_value=1, max_value=weeks_remaining, value=1)
 with st.expander(f"📅 Week {current_week}", expanded=True):
     st.markdown(f"<div style='background-color:#f0f0f5; padding:10px; border-radius:5px;'>", unsafe_allow_html=True)
-    direct_hours = st.number_input(f"Direct Hours for Week {current_week}", min_value=0, value=0, key=f"direct_{current_week}")
-    indirect_hours = st.number_input(f"Indirect Hours for Week {current_week}", min_value=0, value=0, key=f"indirect_{current_week}")
-    weekly_direct_hours[current_week - 1] = direct_hours
-    weekly_indirect_hours[current_week - 1] = indirect_hours
+    direct_hours = st.number_input(f"Direct Hours for Week {current_week}", min_value=0, value=st.session_state.weekly_direct_hours[current_week - 1], key=f"direct_{current_week}")
+    indirect_hours = st.number_input(f"Indirect Hours for Week {current_week}", min_value=0, value=st.session_state.weekly_indirect_hours[current_week - 1], key=f"indirect_{current_week}")
+    
+    # Update session state with new values
+    st.session_state.weekly_direct_hours[current_week - 1] = direct_hours
+    st.session_state.weekly_indirect_hours[current_week - 1] = indirect_hours
+    
     st.markdown(f"</div>", unsafe_allow_html=True)
-
-# Ensure all arrays are of the same length
-if len(weekly_direct_hours) < weeks_remaining:
-    weekly_direct_hours.extend([0] * (weeks_remaining - len(weekly_direct_hours)))
-if len(weekly_indirect_hours) < weeks_remaining:
-    weekly_indirect_hours.extend([0] * (weeks_remaining - len(weekly_indirect_hours)))
 
 # Weekly Progress Summary
 st.header("Weekly Progress Summary")
 progress_data = {
     "Week": list(range(1, weeks_remaining + 1)),
-    "Direct Hours": weekly_direct_hours,
-    "Indirect Hours": weekly_indirect_hours
+    "Direct Hours": st.session_state.weekly_direct_hours,
+    "Indirect Hours": st.session_state.weekly_indirect_hours
 }
 progress_df = pd.DataFrame(progress_data)
 st.dataframe(progress_df)
@@ -118,8 +119,8 @@ st.pyplot(fig)
 # Goal Progress Chart
 st.header("Goal Progress Visualization")
 fig_goal, ax_goal = plt.subplots()
-ax_goal.bar(['Direct Hours Completed', 'Direct Hours Goal'], [direct_hours_completed + sum(weekly_direct_hours), total_direct_hours_required], color='#007AFF', label='Direct Hours')
-ax_goal.bar(['Indirect Hours Completed', 'Indirect Hours Goal'], [indirect_hours_completed + sum(weekly_indirect_hours), total_indirect_hours_required], color='#34C759', label='Indirect Hours')
+ax_goal.bar(['Direct Hours Completed', 'Direct Hours Goal'], [direct_hours_completed + sum(st.session_state.weekly_direct_hours), total_direct_hours_required], color='#007AFF', label='Direct Hours')
+ax_goal.bar(['Indirect Hours Completed', 'Indirect Hours Goal'], [indirect_hours_completed + sum(st.session_state.weekly_indirect_hours), total_indirect_hours_required], color='#34C759', label='Indirect Hours')
 ax_goal.set_ylabel('Hours')
 ax_goal.set_title('Total Progress Towards Goals')
 ax_goal.legend(title='Legend')
@@ -130,13 +131,13 @@ st.header("Goal Progress Gauge Chart")
 fig_gauge = go.Figure()
 fig_gauge.add_trace(go.Indicator(
     mode="gauge+number",
-    value=direct_hours_completed + sum(weekly_direct_hours),
+    value=direct_hours_completed + sum(st.session_state.weekly_direct_hours),
     title={'text': "Direct Hours Completed"},
     gauge={'axis': {'range': [0, total_direct_hours_required]}, 'bar': {'color': "#007AFF"}}
 ))
 fig_gauge.add_trace(go.Indicator(
     mode="gauge+number",
-    value=indirect_hours_completed + sum(weekly_indirect_hours),
+    value=indirect_hours_completed + sum(st.session_state.weekly_indirect_hours),
     title={'text': "Indirect Hours Completed"},
     gauge={'axis': {'range': [0, total_indirect_hours_required]}, 'bar': {'color': "#34C759"}}
 ))
@@ -144,8 +145,8 @@ st.plotly_chart(fig_gauge, use_container_width=True)
 
 # Calculate Total Hours
 st.header("Summary")
-total_direct_hours = direct_hours_completed + sum(weekly_direct_hours)
-total_indirect_hours = indirect_hours_completed + sum(weekly_indirect_hours)
+total_direct_hours = direct_hours_completed + sum(st.session_state.weekly_direct_hours)
+total_indirect_hours = indirect_hours_completed + sum(st.session_state.weekly_indirect_hours)
 
 st.write(f"Total Direct Hours Completed: {total_direct_hours} / {total_direct_hours_required}")
 st.write(f"Total Indirect Hours Completed: {total_indirect_hours} / {total_indirect_hours_required}")
