@@ -51,10 +51,23 @@ def play_audio(audio_file):
 
 # User Inputs
 st.title("Internship Hours Tracker")
-start_date = st.date_input("Start Date", value=datetime.date.today())
 weeks_remaining = st.number_input("Number of Weeks Remaining", min_value=1, max_value=52, value=14)
-direct_hours_completed = st.number_input("Direct Hours Completed", min_value=0, value=0)
-indirect_hours_completed = st.number_input("Indirect Hours Completed", min_value=0, value=0)
+start_date = st.date_input("Start Date", value=datetime.date.today())
+end_date = start_date + datetime.timedelta(weeks=weeks_remaining)
+end_date = start_date + datetime.timedelta(weeks=weeks_remaining)
+weeks_remaining = st.number_input("Number of Weeks Remaining", min_value=1, max_value=52, value=14)
+# Direct Hours Completed (calculated from weekly inputs)
+# Initialize session state to keep track of weekly hours if not already initialized or update if weeks_remaining changes
+if "weekly_direct_hours" not in st.session_state or len(st.session_state.weekly_direct_hours) != weeks_remaining:
+    st.session_state.weekly_direct_hours = [0] * weeks_remaining
+if "weekly_indirect_hours" not in st.session_state or len(st.session_state.weekly_indirect_hours) != weeks_remaining:
+    st.session_state.weekly_indirect_hours = [0] * weeks_remaining
+
+# Direct Hours Completed (calculated from weekly inputs)
+direct_hours_completed = sum(st.session_state.weekly_direct_hours)
+# Indirect Hours Completed (calculated from weekly inputs)
+# Indirect Hours Completed (calculated from weekly inputs)
+indirect_hours_completed = sum(st.session_state.weekly_indirect_hours)
 
 # Initialize session state to keep track of weekly hours if not already initialized
 if "weekly_direct_hours" not in st.session_state:
@@ -84,7 +97,8 @@ st.write(f"You need to complete an average of {average_indirect_per_week} indire
 # User Input for Tracking Weekly Progress
 st.header("Track Weekly Progress")
 current_week = st.number_input("Select Week to Update", min_value=1, max_value=weeks_remaining, value=1)
-with st.expander(f"📅 Week {current_week}", expanded=True):
+week_date = start_date + datetime.timedelta(weeks=current_week - 1)
+with st.expander(f"📅 Week {current_week} ({week_date.strftime('%B %d, %Y')})", expanded=True):
     st.markdown(f"<div style='background-color:#f0f0f5; padding:10px; border-radius:5px;'>", unsafe_allow_html=True)
     direct_hours = st.number_input(f"Direct Hours for Week {current_week}", min_value=0, value=st.session_state.weekly_direct_hours[current_week - 1], key=f"direct_{current_week}")
     indirect_hours = st.number_input(f"Indirect Hours for Week {current_week}", min_value=0, value=st.session_state.weekly_indirect_hours[current_week - 1], key=f"indirect_{current_week}")
@@ -98,7 +112,7 @@ with st.expander(f"📅 Week {current_week}", expanded=True):
 # Weekly Progress Summary
 st.header("Weekly Progress Summary")
 progress_data = {
-    "Week": list(range(1, weeks_remaining + 1)),
+    "Week": [f"Week {i} ({(start_date + datetime.timedelta(weeks=i-1)).strftime('%B %d, %Y')})" for i in range(1, weeks_remaining + 1)],
     "Direct Hours": st.session_state.weekly_direct_hours,
     "Indirect Hours": st.session_state.weekly_indirect_hours
 }
@@ -107,23 +121,23 @@ st.dataframe(progress_df)
 
 # Visualize Weekly Progress in Charts
 st.header("Weekly Progress Visualization")
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(10, 6))
 ax.plot(progress_data['Week'], progress_data['Direct Hours'], label='Direct Hours', marker='o', color='#007AFF')
 ax.plot(progress_data['Week'], progress_data['Indirect Hours'], label='Indirect Hours', marker='o', color='#34C759')
-ax.set_xlabel('Week')
-ax.set_ylabel('Hours')
-ax.set_title('Weekly Progress of Direct and Indirect Hours')
-ax.legend(title='Legend')
+ax.set_xlabel('Week', fontsize=10)
+ax.set_ylabel('Hours', fontsize=10)
+ax.set_title('Weekly Progress of Direct and Indirect Hours', fontsize=12)
+ax.legend(title='Legend', fontsize=8)
 st.pyplot(fig)
 
 # Goal Progress Chart
 st.header("Goal Progress Visualization")
-fig_goal, ax_goal = plt.subplots()
-ax_goal.bar(['Direct Hours Completed', 'Direct Hours Goal'], [direct_hours_completed + sum(st.session_state.weekly_direct_hours), total_direct_hours_required], color='#007AFF', label='Direct Hours')
-ax_goal.bar(['Indirect Hours Completed', 'Indirect Hours Goal'], [indirect_hours_completed + sum(st.session_state.weekly_indirect_hours), total_indirect_hours_required], color='#34C759', label='Indirect Hours')
-ax_goal.set_ylabel('Hours')
-ax_goal.set_title('Total Progress Towards Goals')
-ax_goal.legend(title='Legend')
+fig_goal, ax_goal = plt.subplots(figsize=(10, 6))
+ax_goal.bar(['Direct Hours Completed', 'Direct Hours Goal'], [sum(st.session_state.weekly_direct_hours), total_direct_hours_required], color='#007AFF', label='Direct Hours')
+ax_goal.bar(['Indirect Hours Completed', 'Indirect Hours Goal'], [sum(st.session_state.weekly_indirect_hours), total_indirect_hours_required], color='#34C759', label='Indirect Hours')
+ax_goal.set_ylabel('Hours', fontsize=10)
+ax_goal.set_title('Total Progress Towards Goals', fontsize=12)
+ax_goal.legend(title='Legend', fontsize=8)
 st.pyplot(fig_goal)
 
 # Goal Progress with Gauge Chart
@@ -131,13 +145,13 @@ st.header("Goal Progress Gauge Chart")
 fig_gauge = go.Figure()
 fig_gauge.add_trace(go.Indicator(
     mode="gauge+number",
-    value=direct_hours_completed + sum(st.session_state.weekly_direct_hours),
+    value=sum(st.session_state.weekly_direct_hours),
     title={'text': "Direct Hours Completed"},
     gauge={'axis': {'range': [0, total_direct_hours_required]}, 'bar': {'color': "#007AFF"}}
 ))
 fig_gauge.add_trace(go.Indicator(
     mode="gauge+number",
-    value=indirect_hours_completed + sum(st.session_state.weekly_indirect_hours),
+    value=sum(st.session_state.weekly_indirect_hours),
     title={'text': "Indirect Hours Completed"},
     gauge={'axis': {'range': [0, total_indirect_hours_required]}, 'bar': {'color': "#34C759"}}
 ))
