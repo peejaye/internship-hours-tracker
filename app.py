@@ -51,11 +51,11 @@ def play_audio(audio_file):
 
 # User Inputs
 st.title("Internship Hours Tracker")
-weeks_remaining = st.number_input("Number of Weeks Remaining", min_value=1, max_value=52, value=14)
+weeks_remaining = st.number_input("Number of Weeks Remaining", min_value=1, max_value=52, value=14, key='weeks_remaining_input')
 start_date = st.date_input("Start Date", value=datetime.date.today())
 end_date = start_date + datetime.timedelta(weeks=weeks_remaining)
 end_date = start_date + datetime.timedelta(weeks=weeks_remaining)
-weeks_remaining = st.number_input("Number of Weeks Remaining", min_value=1, max_value=52, value=14)
+# Removed duplicate weeks_remaining input
 # Direct Hours Completed (calculated from weekly inputs)
 # Initialize session state to keep track of weekly hours if not already initialized or update if weeks_remaining changes
 if "weekly_direct_hours" not in st.session_state or len(st.session_state.weekly_direct_hours) != weeks_remaining:
