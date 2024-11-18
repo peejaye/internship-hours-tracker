@@ -51,6 +51,11 @@ def play_audio(audio_file):
 
 # User Inputs
 st.title("Internship Hours Tracker")
+
+# Initial Direct and Indirect Hours Input
+st.header("Initial Hours Needed")
+total_direct_hours_required = st.number_input("Total Direct Hours Needed", min_value=0, value=260, key='total_direct_hours_input')
+total_indirect_hours_required = st.number_input("Total Indirect Hours Needed", min_value=0, value=600, key='total_indirect_hours_input')
 weeks_remaining = st.number_input("Number of Weeks Remaining", min_value=1, max_value=52, value=14, key='weeks_remaining_input')
 start_date = st.date_input("Start Date", value=datetime.date.today())
 end_date = start_date + datetime.timedelta(weeks=weeks_remaining)
@@ -76,8 +81,7 @@ if "weekly_indirect_hours" not in st.session_state:
     st.session_state.weekly_indirect_hours = [0] * weeks_remaining
 
 # Total required hours
-total_direct_hours_required = 260
-total_indirect_hours_required = 600
+# Total required hours set by user input earlier
 
 # Calculations
 remaining_direct_hours = total_direct_hours_required - direct_hours_completed
