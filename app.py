@@ -119,43 +119,11 @@ progress_data = {
 progress_df = pd.DataFrame(progress_data)
 st.dataframe(progress_df)
 
-# Visualize Weekly Progress in Charts
-st.header("Weekly Progress Visualization")
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.plot(progress_data['Week'], progress_data['Direct Hours'], label='Direct Hours', marker='o', color='#007AFF')
-ax.plot(progress_data['Week'], progress_data['Indirect Hours'], label='Indirect Hours', marker='o', color='#34C759')
-ax.set_xlabel('Week', fontsize=10)
-ax.set_ylabel('Hours', fontsize=10)
-ax.set_title('Weekly Progress of Direct and Indirect Hours', fontsize=12)
-ax.legend(title='Legend', fontsize=8)
-st.pyplot(fig)
 
-# Goal Progress Chart
-st.header("Goal Progress Visualization")
-fig_goal, ax_goal = plt.subplots(figsize=(10, 6))
-ax_goal.bar(['Direct Hours Completed', 'Direct Hours Goal'], [sum(st.session_state.weekly_direct_hours), total_direct_hours_required], color='#007AFF', label='Direct Hours')
-ax_goal.bar(['Indirect Hours Completed', 'Indirect Hours Goal'], [sum(st.session_state.weekly_indirect_hours), total_indirect_hours_required], color='#34C759', label='Indirect Hours')
-ax_goal.set_ylabel('Hours', fontsize=10)
-ax_goal.set_title('Total Progress Towards Goals', fontsize=12)
-ax_goal.legend(title='Legend', fontsize=8)
-st.pyplot(fig_goal)
 
-# Goal Progress with Gauge Chart
-st.header("Goal Progress Gauge Chart")
-fig_gauge = go.Figure()
-fig_gauge.add_trace(go.Indicator(
-    mode="gauge+number",
-    value=sum(st.session_state.weekly_direct_hours),
-    title={'text': "Direct Hours Completed"},
-    gauge={'axis': {'range': [0, total_direct_hours_required]}, 'bar': {'color': "#007AFF"}}
-))
-fig_gauge.add_trace(go.Indicator(
-    mode="gauge+number",
-    value=sum(st.session_state.weekly_indirect_hours),
-    title={'text': "Indirect Hours Completed"},
-    gauge={'axis': {'range': [0, total_indirect_hours_required]}, 'bar': {'color': "#34C759"}}
-))
-st.plotly_chart(fig_gauge, use_container_width=True)
+
+
+
 
 # Calculate Total Hours
 st.header("Summary")

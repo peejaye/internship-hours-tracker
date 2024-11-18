@@ -5,8 +5,4 @@ plotly
 pydub
 requests
 python-dotenv
-smtplib
 email-validator
-streamlit
-pandas
-openpyxl
